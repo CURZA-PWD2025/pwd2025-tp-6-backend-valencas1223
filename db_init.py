@@ -1,19 +1,30 @@
 import mysql.connector
+
 from mysql.connector import Error, errorcode
 
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
-DB_NAME = os.getenv("DB_NAME")
+
+print("DB_NAME:", os.getenv("DB_NAME"))
+print("DB_USER:", os.getenv("DB_USER"))
+print("DB_PASSWORD:", os.getenv("DB_PASSWORD"))
+print("DB_HOST:", os.getenv("DB_HOST"))
+print("DB_PORT:", os.getenv("DB_PORT"))
+
+
+DB_NAME = os.getenv("DB_NAME", "tienda")
 
 DB_CONFIG = {
-    'host': os.getenv("DB_HOST"),
-    'user': os.getenv("DB_USER"),
-    'password': os.getenv("DB_PASSWORD"),
-    'port': os.getenv("DB_PORT"),
+    'host': os.getenv("DB_HOST", "localhost"),
+    'user': os.getenv("DB_USER", "root"),
+    'password': os.getenv("DB_PASSWORD", ""),
+    'port': int(os.getenv("DB_PORT", "3306")), 
     'raise_on_warnings': True,
 }
+
 TABLES = {}
 SEEDS = {}
 TABLES['MARCAS'] = (
@@ -198,17 +209,35 @@ def seeds_tables(seed, cursor):
 
 
 cxn = mysql.connector.connect(**DB_CONFIG)
+
 cursor = cxn.cursor()
-cursor.close()
-cxn.close()
 
 create_database(cursor)
+
+cursor.close()
+
+cxn.close()
+
+
+
+
 CONF_DB = DB_CONFIG.copy()
+
 CONF_DB['database'] = DB_NAME
+
 cxn = mysql.connector.connect(**CONF_DB)
+
 cursor = cxn.cursor()
+
+
+
 create_tables(TABLES, cursor)
 seeds_tables(SEEDS, cursor)
+
+
+
 cxn.commit()
+
 cursor.close()
+
 cxn.close()
