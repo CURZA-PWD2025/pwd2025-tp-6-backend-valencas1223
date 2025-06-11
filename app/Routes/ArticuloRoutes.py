@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 
 
-from app.ArticuloController import ArticuloController
+from app.Controllers.ArticuloController import ArticuloController
 
 articulo_bp = Blueprint('articulos', __name__)
 

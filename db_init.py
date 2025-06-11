@@ -1,32 +1,40 @@
 import mysql.connector
-
-from mysql.connector import Error, errorcode
-
+from mysql.connector import Error
 import os
-
 from dotenv import load_dotenv
 
 load_dotenv()
 
-print("DB_NAME:", os.getenv("DB_NAME"))
-print("DB_USER:", os.getenv("DB_USER"))
-print("DB_PASSWORD:", os.getenv("DB_PASSWORD"))
-print("DB_HOST:", os.getenv("DB_HOST"))
-print("DB_PORT:", os.getenv("DB_PORT"))
+DB_NAME = os.getenv("DB_NAME", "Negocio_de_Tencologias")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "3306")
 
+try:
+    DB_PORT = int(DB_PORT)
+except ValueError:
+    DB_PORT = 3306
 
-DB_NAME = os.getenv("DB_NAME", "tienda")
+print("\nConectando a MySQL con la siguiente configuración:")
+print(f"DB_NAME: {DB_NAME}")
+print(f"DB_USER: {DB_USER}")
+print(f"DB_PASSWORD: {DB_PASSWORD}")
+print(f"DB_HOST: {DB_HOST}")
+print(f"DB_PORT: {DB_PORT}\n")
 
 DB_CONFIG = {
-    'host': os.getenv("DB_HOST", "localhost"),
-    'user': os.getenv("DB_USER", "root"),
-    'password': os.getenv("DB_PASSWORD", ""),
-    'port': int(os.getenv("DB_PORT", "3306")), 
+    'host': DB_HOST,
+    'user': DB_USER,
+    'password': DB_PASSWORD,
+    'port': DB_PORT,
     'raise_on_warnings': True,
+    'charset': 'utf8mb4',
 }
 
 TABLES = {}
 SEEDS = {}
+
 TABLES['MARCAS'] = (
     "CREATE TABLE `MARCAS` ("
     "  `id` int(11) NOT NULL AUTO_INCREMENT,"
@@ -55,50 +63,41 @@ TABLES['ARTICULOS'] = (
     "CREATE TABLE `ARTICULOS` ("
     "  `id` int(11) NOT NULL AUTO_INCREMENT,"
     "  `descripcion` varchar(150) NOT NULL,"
-    " `precio` decimal(10,2) NOT NULL,"
+    "  `precio` decimal(10,2) NOT NULL,"
     "  `stock` int(11) NOT NULL,"
     "  PRIMARY KEY (`id`),"
     "  `marca_id` int(11) NOT NULL,"
     "  `proveedor_id` int(11) NOT NULL,"
-    " foreign key (`marca_id`) references MARCAS(id),"
-    " foreign key (`proveedor_id`) references PROVEEDORES(id)"
+    "  FOREIGN KEY (`marca_id`) REFERENCES MARCAS(id),"
+    "  FOREIGN KEY (`proveedor_id`) REFERENCES PROVEEDORES(id)"
     ") "
 )
 TABLES["ARTICULOS_CATEGORIAS"] = (
     "CREATE TABLE `ARTICULOS_CATEGORIAS` ("
     "  `articulo_id` int(11) NOT NULL,"
     "  `categoria_id` int(11) NOT NULL,"
-    " foreign key (`articulo_id`) references ARTICULOS(id),"
-    " foreign key (`categoria_id`) references CATEGORIAS(id)"
+    "  FOREIGN KEY (`articulo_id`) REFERENCES ARTICULOS(id),"
+    "  FOREIGN KEY (`categoria_id`) REFERENCES CATEGORIAS(id)"
     ") "
 )
 
 SEEDS['PROVEEDORES'] = (
-    "INSERT INTO PROVEEDORES (nombre, telefono, direccion, email) "
-    "VALUES (%s, %s, %s, %s)",
+    "INSERT INTO PROVEEDORES (nombre, telefono, direccion, email) VALUES (%s, %s, %s, %s)",
     [
-        ('Tech Solutions SRL', '1144556677',
-         'Av. Córdoba 1234, CABA', 'contacto@techsolutions.com.ar'),
-        ('Informatica Total', '1167891234',
-         'Calle Falsa 456, Rosario', 'ventas@informatotal.com'),
-        ('Redes & Cía', '1133445566',
-         'Av. San Martín 789, Mendoza', 'info@redesycia.com'),
+        ('Tech Solutions SRL', '1144556677', 'Av. Córdoba 1234, CABA', 'contacto@techsolutions.com.ar'),
+        ('Informatica Total', '1167891234', 'Calle Falsa 456, Rosario', 'ventas@informatotal.com'),
+        ('Redes & Cía', '1133445566', 'Av. San Martín 789, Mendoza', 'info@redesycia.com'),
         ('PC Express', '1122334455', 'Mitre 321, La Plata', 'soporte@pcexpress.com.ar'),
-        ('DataSoft Argentina', '1198765432',
-         'Belgrano 987, Córdoba', 'contacto@datasoft.com.ar'),
-        ('CompuMarket', '1177889900',
-         'Av. Rivadavia 4321, CABA', 'ventas@compumarket.com'),
-        ('TechnoWorld', '1100112233',
-         'Urquiza 1111, Mar del Plata', 'info@technoworld.com.ar'),
-        ('HardNet SRL', '1188997766',
-         'Alsina 654, Bahía Blanca', 'clientes@hardnet.com'),
+        ('DataSoft Argentina', '1198765432', 'Belgrano 987, Córdoba', 'contacto@datasoft.com.ar'),
+        ('CompuMarket', '1177889900', 'Av. Rivadavia 4321, CABA', 'ventas@compumarket.com'),
+        ('TechnoWorld', '1100112233', 'Urquiza 1111, Mar del Plata', 'info@technoworld.com.ar'),
+        ('HardNet SRL', '1188997766', 'Alsina 654, Bahía Blanca', 'clientes@hardnet.com'),
         ('BitWare', '1155667788', 'Av. Colon 2020, Salta', 'bitware@correo.com'),
         ('Digital Point', '1133221100', 'San Juan 3030, Tucumán', 'digital@dp.com.ar')
     ]
 )
 SEEDS['MARCAS'] = (
-    "INSERT INTO MARCAS (nombre) "
-    "VALUES (%s)",
+    "INSERT INTO MARCAS (nombre) VALUES (%s)",
     [
         ('HP',),
         ('Dell',),
@@ -113,8 +112,7 @@ SEEDS['MARCAS'] = (
     ]
 )
 SEEDS['CATEGORIAS'] = (
-    "INSERT INTO CATEGORIAS (nombre) "
-    "VALUES (%s)",
+    "INSERT INTO CATEGORIAS (nombre) VALUES (%s)",
     [
         ('Notebooks y Laptops',),
         ('Computadoras de Escritorio',),
@@ -129,8 +127,7 @@ SEEDS['CATEGORIAS'] = (
     ]
 )
 SEEDS['ARTICULOS'] = (
-    "INSERT INTO ARTICULOS (descripcion, precio, stock, marca_id, proveedor_id) "
-    "VALUES (%s, %s, %s, %s, %s)",
+    "INSERT INTO ARTICULOS (descripcion, precio, stock, marca_id, proveedor_id) VALUES (%s, %s, %s, %s, %s)",
     [
         ('Notebook HP Pavilion 15.6" i5 8GB RAM 512GB SSD', 450000.00, 12, 1, 1),
         ('PC de Escritorio Dell OptiPlex i7 16GB RAM 1TB HDD', 520000.00, 7, 2, 2),
@@ -146,8 +143,7 @@ SEEDS['ARTICULOS'] = (
 )
 
 SEEDS['ARTICULOS_CATEGORIAS'] = (
-    "INSERT INTO ARTICULOS_CATEGORIAS (articulo_id, categoria_id) "
-    "VALUES (%s, %s)",
+    "INSERT INTO ARTICULOS_CATEGORIAS (articulo_id, categoria_id) VALUES (%s, %s)",
     [
         (1, 1),
         (2, 2),
@@ -159,85 +155,59 @@ SEEDS['ARTICULOS_CATEGORIAS'] = (
         (8, 8),
         (9, 9),
         (10, 10)
-    ])
+    ]
+)
 
 
-def create_database(cursor):
-    try:
-        cursor.execute(
-            f"CREATE DATABASE {DB_NAME} DEFAULT CHARACTER SET 'utf8'", )
-    except Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database already exists")
-        else:
-            print(err)
-    else:
-        print(f"Database {DB_NAME} created successfully.")
+def Portable_Database(cursor):
+    cursor.execute(
+        f"CREATE DATABASE IF NOT EXISTS {DB_NAME} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+    )
+    print(f" Base de datos '{DB_NAME}' creada correctamente.")
 
 
 def create_tables(tables, cursor):
-
-    for table_name in tables:
-        table_description = tables[table_name]
+    for table_name, table_sql in tables.items():
         try:
-            print(f"Creating table {table_name}: ", end="")
-            cursor.execute(table_description)
+            cursor.execute(table_sql)
+            print(f" Tabla '{table_name}' verificada o creada correctamente.")
         except Error as err:
-            if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-                print("already exists.")
-            else:
-                print(err.msg)
-        else:
-            print("OK")
+            print(f" Advertencia al crear la tabla '{table_name}': {err.msg}")
 
 
-def seeds_tables(seed, cursor):
-    for table_name in seed:
-        seed_description = seed[table_name]
+def seeds_tables(seeds, cursor):
+    for table_name, (sql, data) in seeds.items():
         try:
-            print(f"Seeding table {table_name}: ", end="")
-            cursor.executemany(seed_description[0], seed_description[1])
+            cursor.executemany(sql, data)
+            print(f" Datos insertados en '{table_name}' correctamente.")
         except Error as err:
-            if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-                print("already exists.")
-            else:
-                print(err.msg)
-        else:
-            print("OK")
+            print(f" Error al insertar datos en '{table_name}': {err.msg}")
+            
+def get_connection(with_db=False):
+    config = DB_CONFIG.copy()
+    if with_db:
+        config['database'] = DB_NAME
+    return mysql.connector.connect(**config)
 
+if __name__ == "__main__":
+    try:
+        cnx = get_connection(with_db=False)
+        cursor = cnx.cursor()
+        Portable_Database(cursor)  
+    except Error as e:
+        print(f" Error al conectar o crear la base de datos: {e}")
+    finally:
+        cursor.close()
+        cnx.close()
 
-cxn = mysql.connector.connect(**DB_CONFIG)
-
-cursor = cxn.cursor()
-
-create_database(cursor)
-
-cursor.close()
-
-cxn.close()
-
-
-
-
-CONF_DB = DB_CONFIG.copy()
-
-CONF_DB['database'] = DB_NAME
-
-cxn = mysql.connector.connect(**CONF_DB)
-
-cursor = cxn.cursor()
-
-
-
-create_tables(TABLES, cursor)
-seeds_tables(SEEDS, cursor)
-
-
-
-cxn.commit()
-
-cursor.close()
-
-cxn.close()
+    try:
+        cnx = get_connection(with_db=True)
+        cursor = cnx.cursor()
+        create_tables(TABLES, cursor)
+        seeds_tables(SEEDS, cursor)
+        cnx.commit()
+    except Error as e:
+        print(f"Error al crear tablas o insertar datos: {e}")
+    finally:
+        cursor.close()
+        cnx.close()

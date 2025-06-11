@@ -1,4 +1,4 @@
-from app.ArticuloModel import ArticuloModel
+from app.Models.ArticuloModel import ArticuloModel
 
 class ArticuloController:
     @staticmethod
