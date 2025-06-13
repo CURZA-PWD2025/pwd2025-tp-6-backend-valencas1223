@@ -3,13 +3,15 @@ from mysql.connector import Error
 import os
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
-DB_NAME = os.getenv("DB_NAME", "Negocio_de_Tencologias")
+DB_NAME = os.getenv("DB_NAME", "Negocio_de_tecnologia")
 DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "3306")
+
 
 try:
     DB_PORT = int(DB_PORT)
@@ -29,56 +31,61 @@ DB_CONFIG = {
     'password': DB_PASSWORD,
     'port': DB_PORT,
     'raise_on_warnings': True,
-    'charset': 'utf8mb4',
+    
 }
 
 TABLES = {}
 SEEDS = {}
 
 TABLES['MARCAS'] = (
-    "CREATE TABLE `MARCAS` ("
+    "CREATE TABLE IF NOT EXISTS `MARCAS` ("
     "  `id` int(11) NOT NULL AUTO_INCREMENT,"
     "  `nombre` varchar(50) NOT NULL,"
     "  PRIMARY KEY (`id`)"
-    ") "
+    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 )
+
 TABLES['CATEGORIAS'] = (
-    "CREATE TABLE `CATEGORIAS` ("
+    "CREATE TABLE IF NOT EXISTS `CATEGORIAS` ("
     "  `id` int(11) NOT NULL AUTO_INCREMENT,"
     "  `nombre` varchar(50) NOT NULL,"
     "  PRIMARY KEY (`id`)"
-    ") "
+    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 )
+
 TABLES['PROVEEDORES'] = (
-    "CREATE TABLE `PROVEEDORES` ("
+    "CREATE TABLE IF NOT EXISTS `PROVEEDORES` ("
     "  `id` int(11) NOT NULL AUTO_INCREMENT,"
     "  `nombre` varchar(50) NOT NULL,"
     "  `telefono` varchar(50) NOT NULL,"
     "  `direccion` varchar(50) NOT NULL,"
     "  `email` varchar(50) NOT NULL,"
     "  PRIMARY KEY (`id`)"
-    ") "
+    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 )
+
 TABLES['ARTICULOS'] = (
-    "CREATE TABLE `ARTICULOS` ("
+    "CREATE TABLE IF NOT EXISTS `ARTICULOS` ("
     "  `id` int(11) NOT NULL AUTO_INCREMENT,"
     "  `descripcion` varchar(150) NOT NULL,"
     "  `precio` decimal(10,2) NOT NULL,"
     "  `stock` int(11) NOT NULL,"
-    "  PRIMARY KEY (`id`),"
     "  `marca_id` int(11) NOT NULL,"
     "  `proveedor_id` int(11) NOT NULL,"
-    "  FOREIGN KEY (`marca_id`) REFERENCES MARCAS(id),"
-    "  FOREIGN KEY (`proveedor_id`) REFERENCES PROVEEDORES(id)"
-    ") "
+    "  PRIMARY KEY (`id`),"
+    "  FOREIGN KEY (`marca_id`) REFERENCES MARCAS(id) ON DELETE CASCADE,"
+    "  FOREIGN KEY (`proveedor_id`) REFERENCES PROVEEDORES(id) ON DELETE CASCADE"
+    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 )
+
 TABLES["ARTICULOS_CATEGORIAS"] = (
-    "CREATE TABLE `ARTICULOS_CATEGORIAS` ("
+    "CREATE TABLE IF NOT EXISTS `ARTICULOS_CATEGORIAS` ("
     "  `articulo_id` int(11) NOT NULL,"
     "  `categoria_id` int(11) NOT NULL,"
-    "  FOREIGN KEY (`articulo_id`) REFERENCES ARTICULOS(id),"
-    "  FOREIGN KEY (`categoria_id`) REFERENCES CATEGORIAS(id)"
-    ") "
+    "  FOREIGN KEY (`articulo_id`) REFERENCES ARTICULOS(id) ON DELETE CASCADE,"
+    "  FOREIGN KEY (`categoria_id`) REFERENCES CATEGORIAS(id) ON DELETE CASCADE,"
+    "  PRIMARY KEY (`articulo_id`, `categoria_id`)"
+    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 )
 
 SEEDS['PROVEEDORES'] = (
@@ -96,6 +103,7 @@ SEEDS['PROVEEDORES'] = (
         ('Digital Point', '1133221100', 'San Juan 3030, Tucumán', 'digital@dp.com.ar')
     ]
 )
+
 SEEDS['MARCAS'] = (
     "INSERT INTO MARCAS (nombre) VALUES (%s)",
     [
@@ -111,6 +119,7 @@ SEEDS['MARCAS'] = (
         ('Toshiba',)
     ]
 )
+
 SEEDS['CATEGORIAS'] = (
     "INSERT INTO CATEGORIAS (nombre) VALUES (%s)",
     [
@@ -126,6 +135,7 @@ SEEDS['CATEGORIAS'] = (
         ('Componentes',)
     ]
 )
+
 SEEDS['ARTICULOS'] = (
     "INSERT INTO ARTICULOS (descripcion, precio, stock, marca_id, proveedor_id) VALUES (%s, %s, %s, %s, %s)",
     [
@@ -159,30 +169,29 @@ SEEDS['ARTICULOS_CATEGORIAS'] = (
 )
 
 
+
 def Portable_Database(cursor):
     cursor.execute(
         f"CREATE DATABASE IF NOT EXISTS {DB_NAME} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
     )
-    print(f" Base de datos '{DB_NAME}' creada correctamente.")
-
+    print(f"Base de datos '{DB_NAME}' creada o ya existía.")
 
 def create_tables(tables, cursor):
     for table_name, table_sql in tables.items():
         try:
             cursor.execute(table_sql)
-            print(f" Tabla '{table_name}' verificada o creada correctamente.")
+            print(f"Tabla '{table_name}' verificada o creada correctamente.")
         except Error as err:
-            print(f" Advertencia al crear la tabla '{table_name}': {err.msg}")
-
+            print(f"Advertencia al crear la tabla '{table_name}': {err.msg}")
 
 def seeds_tables(seeds, cursor):
     for table_name, (sql, data) in seeds.items():
         try:
             cursor.executemany(sql, data)
-            print(f" Datos insertados en '{table_name}' correctamente.")
+            print(f"Datos insertados en '{table_name}' correctamente.")
         except Error as err:
-            print(f" Error al insertar datos en '{table_name}': {err.msg}")
-            
+            print(f"Error al insertar datos en '{table_name}': {err.msg}")
+
 def get_connection(with_db=False):
     config = DB_CONFIG.copy()
     if with_db:
@@ -190,16 +199,22 @@ def get_connection(with_db=False):
     return mysql.connector.connect(**config)
 
 if __name__ == "__main__":
+    cursor = None
+    cnx = None
     try:
         cnx = get_connection(with_db=False)
         cursor = cnx.cursor()
-        Portable_Database(cursor)  
+        Portable_Database(cursor)
     except Error as e:
-        print(f" Error al conectar o crear la base de datos: {e}")
+        print(f"Error al conectar o crear la base de datos: {e}")
     finally:
-        cursor.close()
-        cnx.close()
+        if cursor:
+            cursor.close()
+        if cnx:
+            cnx.close()
 
+    cursor = None
+    cnx = None
     try:
         cnx = get_connection(with_db=True)
         cursor = cnx.cursor()
@@ -209,5 +224,24 @@ if __name__ == "__main__":
     except Error as e:
         print(f"Error al crear tablas o insertar datos: {e}")
     finally:
-        cursor.close()
-        cnx.close()
+        if cursor:
+            cursor.close()
+        if cnx:
+            cnx.close()
+
+    cursor = None
+    cnx = None
+    try:
+        cnx = get_connection(with_db=True)
+        cursor = cnx.cursor()
+        cursor.execute("SELECT DATABASE();")
+        db_actual = cursor.fetchone()
+        print(f"\nConectado a la base de datos: {db_actual[0]}")
+    except Error as e:
+        print(f"Error en prueba de conexión: {e}")
+    finally:
+        if cursor:
+            cursor.close()
+        if cnx:
+            cnx.close()
+

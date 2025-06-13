@@ -1,3 +1,5 @@
+#Controllers = get_all get_one create update delete 
+
 from app.Models.ArticuloModel import ArticuloModel
 
 class ArticuloController:
@@ -7,21 +9,33 @@ class ArticuloController:
 
     @staticmethod
     def get_one(id):
-        return ArticuloModel.get_one(id)
+        articulo = ArticuloModel.get_one(id)
+        if articulo:
+            return articulo
+        return {"error": "Artículo no encontrado"}
 
     @staticmethod
     def create(data):
-        articulo = ArticuloModel.deserializar(data)
-        articulo.create()
-        return {"message": "Artículo creado"}
+        try:
+            articulo = ArticuloModel.deserializar(data)
+            articulo.create()
+            return {"message": "Artículo creado"}
+        except Exception as e:
+            return {"error": str(e)}
 
     @staticmethod
     def update(data):
-        articulo = ArticuloModel.deserializar(data)
-        articulo.update()
-        return {"message": "Artículo actualizado"}
+        try:
+            articulo = ArticuloModel.deserializar(data)
+            articulo.update()
+            return {"message": "Artículo actualizado"}
+        except Exception as e:
+            return {"error": str(e)}
 
     @staticmethod
     def delete(id):
-        ArticuloModel.delete(id)
-        return {"message": "Artículo eliminado"}
+        try:
+            ArticuloModel.delete(id)
+            return {"message": "Artículo eliminado"}
+        except Exception as e:
+            return {"error": str(e)}

@@ -1,8 +1,8 @@
 from flask import Flask
 from app.Routes.ArticuloRoutes import articulo_bp
-from app.Routes.Categoria_MarcaRoutes import marca_bp
+from app.Routes.MarcaRoutes import marca_bp
 from app.Routes.ProveedorRoutes import proveedor_bp
-
+from app.Routes.CategoriaRoutes import categoria_bp  
 from db_init import Portable_Database, get_connection, create_tables, seeds_tables, TABLES, SEEDS
 
 def create_app():
@@ -10,6 +10,7 @@ def create_app():
     app.register_blueprint(articulo_bp)
     app.register_blueprint(marca_bp)
     app.register_blueprint(proveedor_bp)
+    app.register_blueprint(categoria_bp)  
     return app
 
 if __name__ == "__main__":
